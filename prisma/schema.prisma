@@ -1,0 +1,489 @@
+// generator client {
+//  provider = "prisma-client-js"
+// }
+
+// datasource db {
+//  provider = "postgresql"
+//  url      = env("DATABASE_URL")
+// }
+
+// model User {
+//  id            String    @id @default(cuid())
+//  name          String?
+//  email         String    @unique
+//  emailVerified DateTime?
+//  password      String?
+//  image         String?
+//  role          Role      @default(USER)
+//  createdAt     DateTime  @default(now())
+//  updatedAt     DateTime  @updatedAt
+//  accounts      Account[]
+//  sessions      Session[]
+//  addresses     Address[]
+//  orders        Order[]
+//  reviews       Review[]
+// }
+
+// model Account {
+//  id                String  @id @default(cuid())
+//  userId            String
+//  type              String
+//  provider          String
+//  providerAccountId String
+//  refresh_token     String? @db.Text
+//  access_token      String? @db.Text
+//  expires_at        Int?
+//  token_type        String?
+//  scope             String?
+//  id_token          String? @db.Text
+//  session_state     String?
+
+//  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//  @@unique([provider, providerAccountId])
+// }
+
+// model Session {
+//  id           String   @id @default(cuid())
+//  sessionToken String   @unique
+//  userId       String
+//  expires      DateTime
+//  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// model VerificationToken {
+//  identifier String
+//  token      String   @unique
+//  expires    DateTime
+
+//  @@unique([identifier, token])
+// }
+
+// model Address {
+//  id         String   @id @default(cuid())
+//  userId     String
+//  name       String
+//  street     String
+//  city       String
+//  state      String
+//  postalCode String
+//  country    String
+//  phone      String
+//  isDefault  Boolean  @default(false)
+//  createdAt  DateTime @default(now())
+//  updatedAt  DateTime @updatedAt
+//  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//  orders     Order[]
+// }
+
+// model Category {
+//  id          String    @id @default(cuid())
+//  name        String    @unique
+//  description String?
+//  slug        String    @unique
+//  image       String?
+//  createdAt   DateTime  @default(now())
+//  updatedAt   DateTime  @updatedAt
+//  products    Product[]
+// }
+
+// model Product {
+//  id            String           @id @default(cuid())
+//  name          String
+//  description   String
+//  slug          String           @unique
+//  price         Float
+//  discountPrice Float?
+//  stock         Int              @default(0)
+//  hsnCode       String?
+//  metadata      Json?
+//  keywords      String[]
+//  categoryId    String
+//  images        ProductImage[]
+//  variants      ProductVariant[]
+//  createdAt     DateTime         @default(now())
+//  updatedAt     DateTime         @updatedAt
+//  category      Category         @relation(fields: [categoryId], references: [id])
+//  orderItems    OrderItem[]
+//  reviews       Review[]
+// }
+
+// model ProductVariant {
+//  id         String         @id @default(cuid())
+//  productId  String
+//  color      String
+//  colorCode  String
+//  size       String?
+//  stock      Int            @default(0)
+//  images     ProductImage[]
+//  createdAt  DateTime       @default(now())
+//  updatedAt  DateTime       @updatedAt
+//  product    Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+//  orderItems OrderItem[]
+// }
+
+// model ProductImage {
+//  id             String          @id @default(cuid())
+//  productId      String?
+//  variantId      String?
+//  url            String
+//  data           Bytes
+//  createdAt      DateTime        @default(now())
+//  updatedAt      DateTime        @updatedAt
+//  product        Product?        @relation(fields: [productId], references: [id], onDelete: Cascade)
+//  productVariant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+// }
+
+// model Discount {
+//  id          String   @id @default(cuid())
+//  name        String
+//  description String?
+//  percentage  Float
+//  isActive    Boolean  @default(true)
+//  startDate   DateTime
+//  endDate     DateTime
+//  createdAt   DateTime @default(now())
+//  updatedAt   DateTime @updatedAt
+// }
+
+// model Scheme {
+//  id            String       @id @default(cuid())
+//  name          String
+//  description   String?
+//  discountType  DiscountType
+//  discountValue Float
+//  freeDelivery  Boolean      @default(false)
+//  isActive      Boolean      @default(true)
+//  startDate     DateTime
+//  endDate       DateTime
+//  createdAt     DateTime     @default(now())
+//  updatedAt     DateTime     @updatedAt
+// }
+
+// model Coupon {
+//  id                 String    @id @default(cuid())
+//  code               String    @unique
+//  description        String?
+//  discountPercentage Float
+//  maxDiscountAmount  Float?
+//  minOrderValue      Float?
+//  isActive           Boolean   @default(true)
+//  startDate          DateTime
+//  endDate            DateTime?
+//  usageLimit         Int?
+//  usageCount         Int       @default(0)
+//  createdAt          DateTime  @default(now())
+//  updatedAt          DateTime  @updatedAt
+//  orders             Order[]
+// }
+
+// model Order {
+//  id                 String        @id @default(cuid())
+//  userId             String
+//  addressId          String
+//  total              Float
+//  subtotal           Float         @default(0)
+//  discount           Float         @default(0)
+//  couponId           String?
+//  status             OrderStatus   @default(PENDING)
+//  paymentId          String?
+//  paymentStatus      PaymentStatus @default(PENDING)
+//  cancellationReason String?
+//  invoiceNumber      String?       @unique
+//  createdAt          DateTime      @default(now())
+//  updatedAt          DateTime      @updatedAt
+//  user               User          @relation(fields: [userId], references: [id])
+//  address            Address       @relation(fields: [addressId], references: [id])
+//  orderItems         OrderItem[]
+//  coupon             Coupon?       @relation(fields: [couponId], references: [id])
+// }
+
+// model OrderItem {
+//  id             String          @id @default(cuid())
+//  orderId        String
+//  productId      String
+//  variantId      String?
+//  quantity       Int
+//  price          Float
+//  createdAt      DateTime        @default(now())
+//  updatedAt      DateTime        @updatedAt
+//  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//  product        Product         @relation(fields: [productId], references: [id])
+//  productVariant ProductVariant? @relation(fields: [variantId], references: [id])
+// }
+
+// model Review {
+//  id         String   @id @default(cuid())
+//  userId     String
+//  productId  String
+//  rating     Int
+//  comment    String?
+//  isApproved Boolean  @default(false)
+//  createdAt  DateTime @default(now())
+//  updatedAt  DateTime @updatedAt
+//  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+// }
+
+// model Settings {
+//  id                String   @id @default(cuid())
+//  razorpayKeyId     String?
+//  razorpayKeySecret String?
+//  smtpHost          String?
+//  smtpPort          Int?
+//  smtpUser          String?
+//  smtpPass          String?
+//  maintenanceMode   Boolean  @default(false)
+//  createdAt         DateTime @default(now())
+//  updatedAt         DateTime @updatedAt
+// }
+
+// enum Role {
+//  USER
+//  ADMIN
+// }
+
+// enum OrderStatus {
+//  PENDING
+//  PROCESSING
+//  SHIPPED
+//  DELIVERED
+//  CANCELLED
+// }
+
+// enum PaymentStatus {
+//  PENDING
+//  PAID
+//  FAILED
+//  REFUNDED
+// }
+
+// enum DiscountType {
+//  PERCENTAGE
+//  FIXED_AMOUNT
+// }
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+ provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "postgresql"
+ url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+ USER
+ ADMIN
+}
+
+enum OrderStatus {
+ PENDING
+ PROCESSING
+ SHIPPED
+ DELIVERED
+ CANCELLED
+ RETURN_REQUESTED
+ RETURNED
+}
+
+enum PaymentStatus {
+ PENDING
+ PAID
+ FAILED
+ REFUNDED
+}
+
+enum ReturnStatus {
+ PENDING
+ APPROVED
+ REJECTED
+}
+
+model User {
+ id            String    @id @default(cuid())
+ name          String?
+ email         String    @unique
+ emailVerified DateTime?
+ password      String?
+ image         String?
+ role          UserRole  @default(USER)
+ createdAt     DateTime  @default(now())
+ updatedAt     DateTime  @updatedAt
+ orders        Order[]
+ addresses     Address[]
+ reviews       Review[]
+}
+
+model Category {
+ id          String    @id @default(cuid())
+ name        String    @unique
+ description String?
+ slug        String    @unique
+ createdAt   DateTime  @default(now())
+ updatedAt   DateTime  @updatedAt
+ products    Product[]
+}
+
+model Product {
+ id            String           @id @default(cuid())
+ name          String
+ description   String
+ slug          String           @unique
+ price         Float
+ discountPrice Float?
+ stock         Int              @default(0)
+ hsnCode       String?
+ keywords      String[]
+ categoryId    String
+ createdAt     DateTime         @default(now())
+ updatedAt     DateTime         @updatedAt
+ category      Category         @relation(fields: [categoryId], references: [id])
+ images        ProductImage[]
+ variants      ProductVariant[]
+ orderItems    OrderItem[]
+ reviews       Review[]
+}
+
+model ProductImage {
+ id        String          @id @default(cuid())
+ url       String
+ data      Bytes
+ productId String?
+ variantId String?
+ product   Product?        @relation(fields: [productId], references: [id])
+ variant   ProductVariant? @relation(fields: [variantId], references: [id])
+}
+
+model ProductVariant {
+ id        String         @id @default(cuid())
+ productId String
+ color     String
+ colorCode String
+ size      String?
+ stock     Int
+ createdAt DateTime       @default(now())
+ updatedAt DateTime       @updatedAt
+ product   Product        @relation(fields: [productId], references: [id])
+ images    ProductImage[]
+}
+
+model Order {
+ id                 String         @id @default(cuid())
+ userId             String
+ addressId          String
+ total              Float
+ subtotal           Float          @default(0)
+ discount           Float          @default(0)
+ codCharges         Float          @default(0)
+ couponId           String?
+ status             OrderStatus    @default(PENDING)
+ paymentId          String?
+ paymentStatus      PaymentStatus  @default(PENDING)
+ paymentMethod      String?        @default("ONLINE")
+ invoiceNumber      String?        @unique
+ cancellationReason String?
+ shipmentId         String?
+ awbNumber          String?
+ trackingUrl        String?
+ createdAt          DateTime       @default(now())
+ updatedAt          DateTime       @updatedAt
+ user               User           @relation(fields: [userId], references: [id])
+ address            Address        @relation(fields: [addressId], references: [id])
+ orderItems         OrderItem[]
+ coupon             Coupon?        @relation(fields: [couponId], references: [id])
+ returnRequest      ReturnRequest?
+}
+
+model OrderItem {
+ id        String   @id @default(cuid())
+ orderId   String
+ productId String
+ quantity  Int
+ price     Float
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ order     Order    @relation(fields: [orderId], references: [id])
+ product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Address {
+ id         String   @id @default(cuid())
+ userId     String
+ name       String
+ street     String
+ city       String
+ state      String
+ postalCode String
+ country    String
+ phone      String
+ isDefault  Boolean  @default(false)
+ createdAt  DateTime @default(now())
+ updatedAt  DateTime @updatedAt
+ user       User     @relation(fields: [userId], references: [id])
+ orders     Order[]
+}
+
+model Review {
+ id         String   @id @default(cuid())
+ userId     String
+ productId  String
+ rating     Int
+ comment    String?
+ isApproved Boolean  @default(false)
+ createdAt  DateTime @default(now())
+ updatedAt  DateTime @updatedAt
+ user       User     @relation(fields: [userId], references: [id])
+ product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Coupon {
+ id                 String    @id @default(cuid())
+ code               String    @unique
+ description        String?
+ discountPercentage Float
+ maxDiscountAmount  Float?
+ minOrderValue      Float?
+ isActive           Boolean   @default(true)
+ startDate          DateTime
+ endDate            DateTime?
+ usageLimit         Int?
+ usageCount         Int       @default(0)
+ createdAt          DateTime  @default(now())
+ updatedAt          DateTime  @updatedAt
+ orders             Order[]
+}
+
+model ReturnRequest {
+ id          String       @id @default(cuid())
+ orderId     String       @unique
+ reason      String
+ description String?
+ status      ReturnStatus @default(PENDING)
+ createdAt   DateTime     @default(now())
+ updatedAt   DateTime     @updatedAt
+ order       Order        @relation(fields: [orderId], references: [id])
+}
+
+model Settings {
+ id                 String   @id @default(cuid())
+ razorpayKeyId      String
+ razorpayKeySecret  String
+ smtpHost           String
+ smtpPort           Int      @default(587)
+ smtpUser           String
+ smtpPass           String
+ maintenanceMode    Boolean  @default(false)
+ enableShiprocket   Boolean  @default(false)
+ enableCOD          Boolean  @default(false)
+ enableReturns      Boolean  @default(true)
+ returnPeriod       Int      @default(7)
+ shiprocketEmail    String?
+ shiprocketPassword String?
+ codCharges         Float    @default(0)
+ createdAt          DateTime @default(now())
+ updatedAt          DateTime @updatedAt
+}
